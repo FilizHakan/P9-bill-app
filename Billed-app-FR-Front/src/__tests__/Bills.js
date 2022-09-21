@@ -35,7 +35,8 @@ describe("Given I am connected as an employee", () => {
       console.log(windowIcon)
 
       // Check that the icon has the highlighted class given by active-icon
-      expect(windowIcon).toHaveClass("active-icon");
+      expect(windowIcon).toBeTruthy();
+      expect(windowIcon.classList).toContain("active-icon");
 
     })
     test("Then bills should be ordered from earliest to latest", () => {
