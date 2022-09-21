@@ -52,5 +52,18 @@ describe("Given I am connected as an employee", () => {
       // Test if the dates are sorted like as in the test
       expect(dates).toEqual(datesSorted)
     })
+
+    // describe when I click on the "new bill" button
+    // - test(then the new bill should be shown)
+
+    // describe when I click on the icon eye
+    // - test then the function is called
+    // - test then the bill is shown
+    // - test then the right bill is shown
+    // - integration test GET 'fetch bills from mock API GET'
+
+    // describe when an error occurs with the API (beforeEach)
+    // - test when bills are fetched from the API and it fails with 404 message error'
+    // - test when fetch message from the API and it fails with 500 message error'
   })
 })

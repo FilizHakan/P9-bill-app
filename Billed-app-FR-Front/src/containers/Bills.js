@@ -1,6 +1,6 @@
 import { ROUTES_PATH } from '../constants/routes.js'
-import { formatDate, formatStatus } from "../app/format.js"
-import Logout from "./Logout.js"
+import { formatDate, formatStatus } from '../app/format.js'
+import Logout from './Logout.js'
 
 export default class {
   constructor({ document, onNavigate, store, localStorage }) {
@@ -21,9 +21,9 @@ export default class {
   }
 
   handleClickIconEye = (icon) => {
-    const billUrl = icon.getAttribute("data-bill-url")
+    const billUrl = icon.getAttribute('data-bill-url')
     const imgWidth = Math.floor($('#modaleFile').width() * 0.5)
-    $('#modaleFile').find(".modal-body").html(`<div style='text-align: center;' class="bill-proof-container"><img width=${imgWidth} src=${billUrl} alt="Bill" /></div>`)
+    $('#modaleFile').find('.modal-body').html(`<div style='text-align: center;' class="bill-proof-container"><img width=${imgWidth} src=${billUrl} alt="Bill" /></div>`)
     $('#modaleFile').modal('show')
   }
 
@@ -34,6 +34,7 @@ export default class {
       .list()
       .then(snapshot => {
         const bills = snapshot
+          .sort((a,b) => (a.date < b.date ? 1: -1))
           .map(doc => {
             try {
               return {
@@ -52,6 +53,7 @@ export default class {
               }
             }
           })
+          console.log(bills)
           console.log('length', bills.length)
         return bills
       })
