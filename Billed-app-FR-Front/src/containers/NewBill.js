@@ -25,6 +25,10 @@ export default class NewBill {
     formData.append('file', file)
     formData.append('email', email)
 
+    const extensionVerification = /(png|jpeg|jpg)/g;
+    const extension = fileName.split(".").pop().toLowerCase();
+    
+    if(extension.match(extensionVerification)){
     this.store
       .bills()
       .create({
@@ -39,6 +43,10 @@ export default class NewBill {
         this.fileUrl = fileUrl
         this.fileName = fileName
       }).catch(error => console.error(error))
+    }else{
+      alert("le format obligatoire du fichier doit être soit png, jpeg ou jpg");
+      document.querySelector('input[data-testid="file"]').value = null;
+    }
   }
   handleSubmit = e => {
     e.preventDefault()
