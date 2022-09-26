@@ -33,7 +33,7 @@ const setup = async () => {
   // Initialise router function
   router();
 
-  // Call back root const
+  // Call back root function
   return root;
 };
 

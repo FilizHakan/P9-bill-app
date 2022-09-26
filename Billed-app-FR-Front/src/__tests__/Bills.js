@@ -47,7 +47,7 @@ describe("Given I am connected as an employee", () => {
       document.body.innerHTML = BillsUI({ data: bills })
       
       // Get the dates
-      const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
+      const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.getAttribute("data-testid"));
       
       // Sort dates by ascending order
       const antiChrono = (a, b) => ((a < b) ? 1 : -1)
@@ -55,10 +55,9 @@ describe("Given I am connected as an employee", () => {
       
       // Test if the dates are sorted like as in the test
       expect(dates).toEqual(datesSorted)
-    });
+    })
 
-    // describe when I click on the "new bill" button
-    // - test(then the new bill should be shown)
+    //test(then adding the new bill should be shown)
 
     // describe when I click on the icon eye
     // - test then the function is called
