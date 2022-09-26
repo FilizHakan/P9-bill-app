@@ -2,10 +2,13 @@
  * @jest-environment jsdom
  */
 
-import {screen, waitFor} from "@testing-library/dom"
+import store from "../__mocks__/store"
+import userEvent from "@testing-library/user-event"
+import {screen, waitFor, prettyDOM} from "@testing-library/dom"
+import Bills from "../containers/Bills.js"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH} from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH} from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
 
 import router from "../app/Router.js";
@@ -52,7 +55,7 @@ describe("Given I am connected as an employee", () => {
       
       // Test if the dates are sorted like as in the test
       expect(dates).toEqual(datesSorted)
-    })
+    });
 
     // describe when I click on the "new bill" button
     // - test(then the new bill should be shown)
