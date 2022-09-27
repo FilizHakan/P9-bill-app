@@ -3,18 +3,33 @@ import Logout from './Logout.js'
 
 export default class NewBill {
   constructor({ document, onNavigate, store, localStorage }) {
-    this.document = document
-    this.onNavigate = onNavigate
-    this.store = store
-    const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
-    formNewBill.addEventListener("submit", this.handleSubmit)
-    const file = this.document.querySelector(`input[data-testid="file"]`)
-    file.addEventListener("change", this.handleChangeFile)
-    this.fileUrl = null
-    this.fileName = null
-    this.billId = null
-    new Logout({ document, localStorage, onNavigate })
+    this.document = document;
+    this.onNavigate = onNavigate;
+    this.store = store;
+    const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`);
+    formNewBill.addEventListener("submit", this.handleSubmit);
+    const file = this.document.querySelector(`input[data-testid="file"]`);
+    file.addEventListener("change", this.handleChangeFile);
+    this.fileUrl = null;
+    this.fileName = null;
+    this.billId = null;
+    new Logout({ document, localStorage, onNavigate });
+
+    // Set up form error
+    const formError = document.createElement("div");
+    formError.setAttribute("class", "formError errorIsHidden");
+    formError.setAttribute("data-testid", "form-error");
+    formError.innerHTML = "Veuillez remplir tous les champs obligatoires";
+    this.document.querySelector("#newBillForm").appendChild(formError);
+
+    // Set up extension error
+    const extensionError = document.createElement("div");
+    extensionError.innerHTML = "Le format du fichier doit être obligatoirement soit png, jpeg ou jpg";
+    extensionError.setAttribute("class", "extensionError errorIsHidden");
+    extensionError.setAttribute("data-testid", "extension-error");
+    this.document.querySelector(`input[data-testid="file"]`).parentNode.appendChild(extensionError);
   }
+  
   handleChangeFile = e => {
     e.preventDefault()
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
@@ -25,10 +40,10 @@ export default class NewBill {
     formData.append('file', file)
     formData.append('email', email)
 
-    const extensionVerification = /(png|jpeg|jpg)/g;
-    const extension = fileName.split(".").pop().toLowerCase();
+    const extensionCheck = /(png|jpeg|jpg)/g; // Compulsory extensions
+    const extensionFormat = fileName.split(".").pop().toLowerCase();
     
-    if(extension.match(extensionVerification)){
+    if(extensionFormat.match(extensionCheck)){
     this.store
       .bills()
       .create({
@@ -43,9 +58,10 @@ export default class NewBill {
         this.fileUrl = fileUrl
         this.fileName = fileName
       }).catch(error => console.error(error))
-    }else{
-      alert("le format obligatoire du fichier doit être soit png, jpeg ou jpg");
-      document.querySelector('input[data-testid="file"]').value = null;
+    } else {
+      const extensionError = this.document.querySelector(".extensionError");
+      extensionError.setAttribute("class", "extensionError errorIsShown")
+      this.document.querySelector('input[data-testid="file"]').value = null;
     }
   }
   handleSubmit = e => {
@@ -65,9 +81,18 @@ export default class NewBill {
       fileName: this.fileName,
       status: 'pending'
     }
-    this.updateBill(bill)
-    this.onNavigate(ROUTES_PATH['Bills'])
-  }
+
+    if (!bill.name || !bill.date || !bill.amount || !bill.pct) // If one of the required fields is not filled out then error alert is shown
+    {
+      const formError = this.document.querySelector(".formError");
+      formError.setAttribute("class", "formError errorIsShown");
+    } else {
+      const formError = this.document.querySelector(".formError");
+      formError.setAttribute("class", "formError errorIsHidden");
+      this.updateBill(bill);
+      this.onNavigate(ROUTES_PATH['Bills']);
+      }
+    };
 
   // not need to cover this function by tests
   updateBill = (bill) => {

@@ -9,7 +9,7 @@ export default () => {
         <div class='content-header'>
           <div class='content-title'> Envoyer une note de frais </div>
         </div>
-        <div class="form-newbill-container content-inner">
+        <div id="newBillForm" class="form-newbill-container content-inner">
           <form data-testid="form-new-bill">
             <div class="row">
                 <div class="col-md-6">
