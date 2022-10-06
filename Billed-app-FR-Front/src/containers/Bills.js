@@ -10,9 +10,9 @@ export default class {
     const buttonNewBill = document.querySelector(`button[data-testid="btn-new-bill"]`)
     if (buttonNewBill) buttonNewBill.addEventListener('click', this.handleClickNewBill)
     const iconEye = document.querySelectorAll(`div[data-testid="icon-eye"]`)
-    if (iconEye) iconEye.forEach(icon => {
-      icon.addEventListener('click', () => this.handleClickIconEye(icon))
-    })
+    if (iconEye) iconEye.forEach((icon) => {
+        icon.addEventListener('click', () => this.handleClickIconEye(icon))
+      })
     new Logout({ document, localStorage, onNavigate })
   }
 
@@ -30,33 +30,34 @@ export default class {
   getBills = () => {
     if (this.store) {
       return this.store
-      .bills()
-      .list()
-      .then(snapshot => {
-        const bills = snapshot
-          .sort((a,b) => (a.date < b.date ? 1: -1))
-          .map(doc => {
-            try {
-              return {
-                ...doc,
-                date: formatDate(doc.date),
-                status: formatStatus(doc.status)
+        .bills()
+        .list()
+        .then((snapshot) => {
+          const bills = snapshot
+            .sort((a, b) => (a.date < b.date ? 1 : -1))
+            .map((doc) => {
+              try {
+                return {
+                  ...doc,
+                  date: doc.date,
+                  status: formatStatus(doc.status),
+                }
+              } catch (e) {
+                // if for some reason, corrupted data was introduced, we manage here failing formatDate function
+                // log the error and return unformatted date in that case
+                
+                return {
+                  ...doc,
+                  date: formatDate(doc.date),
+                  status: formatStatus(doc.status),
+                }
               }
-            } catch(e) {
-              // if for some reason, corrupted data was introduced, we manage here failing formatDate function
-              // log the error and return unformatted date in that case
-              console.log(e,'for',doc)
-              return {
-                ...doc,
-                date: doc.date,
-                status: formatStatus(doc.status)
-              }
-            }
-          })
-          console.log(bills)
+            })
+          console.log(bills)  
           console.log('length', bills.length)
-        return bills
-      })
+          return bills
+        })
+        .catch(error => error)
     }
   }
 }

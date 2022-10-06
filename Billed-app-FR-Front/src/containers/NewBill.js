@@ -20,11 +20,11 @@ export default class NewBill {
     formError.setAttribute("class", "formError errorIsHidden");
     formError.setAttribute("data-testid", "form-error");
     formError.innerHTML = "Veuillez remplir tous les champs obligatoires";
-    this.document.querySelector("#newBillForm").appendChild(formError);
+    this.document.querySelector("#newBillForm").parentNode.appendChild(formError);
 
     // Set up extension error
     const extensionError = document.createElement("div");
-    extensionError.innerHTML = "Le format du fichier doit être obligatoirement soit png, jpeg ou jpg";
+    extensionError.innerHTML = "Le format du fichier doit être soit .png, .jpeg ou .jpg";
     extensionError.setAttribute("class", "extensionError errorIsHidden");
     extensionError.setAttribute("data-testid", "extension-error");
     this.document.querySelector(`input[data-testid="file"]`).parentNode.appendChild(extensionError);
@@ -32,6 +32,10 @@ export default class NewBill {
   
   handleChangeFile = e => {
     e.preventDefault()
+
+    const errorMessageExtension = this.document.querySelector(".extensionError");
+    errorMessageExtension.setAttribute("class", "extensionError errorIsHidden");
+
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
     const filePath = e.target.value.split(/\\/g)
     const fileName = filePath[filePath.length-1]
@@ -39,11 +43,13 @@ export default class NewBill {
     const email = JSON.parse(localStorage.getItem("user")).email
     formData.append('file', file)
     formData.append('email', email)
-
+    console.log('--- TEST PASSED ---')
+    
     const extensionCheck = /(png|jpeg|jpg)/g; // Compulsory extensions
     const extensionFormat = fileName.split(".").pop().toLowerCase();
-    
-    if(extensionFormat.match(extensionCheck)){
+
+    if(extensionFormat.match(extensionCheck))
+    {
     this.store
       .bills()
       .create({
@@ -61,15 +67,17 @@ export default class NewBill {
     } else {
       const extensionError = this.document.querySelector(".extensionError");
       extensionError.setAttribute("class", "extensionError errorIsShown")
-      this.document.querySelector('input[data-testid="file"]').value = null;
+      this.document.querySelector('input[data-testid="file"]').value = "";
     }
-  }
-  handleSubmit = e => {
+  };
+
+  handleSubmit = e => 
+  {
     e.preventDefault()
     console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
     const email = JSON.parse(localStorage.getItem("user")).email
     const bill = {
-      email,
+      email, 
       type: e.target.querySelector(`select[data-testid="expense-type"]`).value,
       name:  e.target.querySelector(`input[data-testid="expense-name"]`).value,
       amount: parseInt(e.target.querySelector(`input[data-testid="amount"]`).value),
@@ -80,7 +88,7 @@ export default class NewBill {
       fileUrl: this.fileUrl,
       fileName: this.fileName,
       status: 'pending'
-    }
+    };
 
     if (!bill.name || !bill.date || !bill.amount || !bill.pct) // If one of the required fields is not filled out then error alert is shown
     {
@@ -90,12 +98,14 @@ export default class NewBill {
       const formError = this.document.querySelector(".formError");
       formError.setAttribute("class", "formError errorIsHidden");
       this.updateBill(bill);
-      this.onNavigate(ROUTES_PATH['Bills']);
+      //this.onNavigate(ROUTES_PATH['Bills']);
       }
     };
 
+  /* istanbul ignore next */
   // not need to cover this function by tests
-  updateBill = (bill) => {
+  updateBill = (bill) => 
+  {
     if (this.store) {
       this.store
       .bills()

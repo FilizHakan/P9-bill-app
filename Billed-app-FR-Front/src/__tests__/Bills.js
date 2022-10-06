@@ -2,32 +2,49 @@
  * @jest-environment jsdom
  */
 
-import store from "../__mocks__/store"
-import userEvent from "@testing-library/user-event"
-import {screen, waitFor, prettyDOM} from "@testing-library/dom"
-import Bills from "../containers/Bills.js"
-import BillsUI from "../views/BillsUI.js"
-import { bills } from "../fixtures/bills.js"
-import { ROUTES, ROUTES_PATH} from "../constants/routes.js";
+import "@testing-library/jest-dom";
+import store from "../__mocks__/store";
+import userEvent from "@testing-library/user-event";
+import { screen, waitFor, prettyDOM, getByTestId } from "@testing-library/dom";
+import Bills from "../containers/Bills.js";
+import BillsUI from "../views/BillsUI.js";
+import router from "../app/Router.js";
+import { bills } from "../fixtures/bills.js";
+import mockStore from "../__mocks__/store";
+import { ROUTES, ROUTES_PATH } from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
 
-import router from "../app/Router.js";
+jest.mock("../app/store", () => mockStore)
+
+const setup = async () => {
+
+  // Create an object with the adaquate properties
+  Object.defineProperty(window, "localStorage", { value: localStorageMock });
+  
+  // Connect as an employee
+  window.localStorage.setItem(
+    "user",
+    JSON.stringify({ type: "Employee", email: "a@a" })
+  );
+
+  // Create a div as in the DOM
+  const root = document.createElement("div");
+  root.setAttribute("id", "root");
+  // Add the div with append
+  document.body.append(root);
+
+  // Initialise router function
+  router();
+
+  // Call back root function
+  return root;
+};
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
-      // Create an object with the adaquate properties
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
-      // Create a div like in the DOM
-      const root = document.createElement("div")
-      root.setAttribute("id", "root")
-      document.body.append(root)
-
-      // Initialise router function
-      router()
+      
+      await setup();
 
       // Surfing on Bills page 
       window.onNavigate(ROUTES_PATH.Bills)
@@ -41,8 +58,9 @@ describe("Given I am connected as an employee", () => {
       expect(windowIcon).toBeTruthy();
       expect(windowIcon.classList).toContain("active-icon");
 
-    })
-    test("Then bills should be ordered from earliest to latest", () => {
+    });
+
+    test("Then, bills should be ordered from most recent to oldest", () => {
       // Add the view on the Bill page
       document.body.innerHTML = BillsUI({ data: bills })
       
@@ -55,18 +73,106 @@ describe("Given I am connected as an employee", () => {
       
       // Test if the dates are sorted like as in the test
       expect(dates).toEqual(datesSorted)
-    })
+    });
 
-    //test(then adding the new bill should be shown)
+    test("Then, adding a new bill should be reloading the NewBills page", ()=>
+    {
+      document.body.innerHTML = BillsUI({ data: bills});
+      const onNavigate = (pathname) =>
+      {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+      const currentBills = new Bills({document, onNavigate, store, localStorageMock});  
 
-    // describe when I click on the icon eye
-    // - test then the function is called
-    // - test then the bill is shown
-    // - test then the right bill is shown
-    // - integration test GET 'fetch bills from mock API GET'
+      const handleClickNewBill = jest.fn((e) => currentBills.handleClickNewBill(e));
 
-    // describe when an error occurs with the API (beforeEach)
-    // - test when bills are fetched from the API and it fails with 404 message error'
-    // - test when fetch message from the API and it fails with 500 message error'
-  })
-})
+      const newBills = screen.getByTestId("btn-new-bill");
+      newBills.addEventListener("click", handleClickNewBill);
+      userEvent.click(newBills);
+      
+      const newBillForm = screen.getByTestId("form-new-bill");
+      
+      // Assertion:
+      expect(newBillForm).toBeTruthy();
+    });
+
+    describe("When I click on the 'Envoyer une nouvelle note de frais' button", ()=>
+    {
+      test("Then, the New Bill form should appear", async()=>
+      {
+        await setup();
+
+        // Fetch the new bill Button
+        const newBillButton = getByTestId(document.body, "btn-new-bill");
+
+        // Mock of the navigation function
+        const onNavigate = jest.fn(window.onNavigate(ROUTES_PATH.Bills))
+
+        // Fake a user's click on the button with a listener and userEvent
+        newBillButton.addEventListener("click", onNavigate);
+        userEvent.click(newBillButton);
+
+        // Fetch the sending button
+        const sendNewBill = getByTestId(document.body, "send-new-bill");
+
+        // Assetions: check if the new bill page is properly displayed
+        expect(sendNewBill).toHaveTextContent("Envoyer une note de frais");
+      });
+    });
+
+    describe("When I click on an eye icon", ()=>
+    {
+      test("Then, the modal should appear", ()=>
+      {
+        document.body.innerHTML = BillsUI({data: bills});
+        const currentBills = new Bills({document, onNavigate, store, localStorageMock});
+        
+        // Mock the JQuery used in Bills
+        $.fn.modal = jest.fn();
+        const spyOnModal = jest.spyOn($.fn, "modal");
+
+        // Fetch eye icons
+        const eyeIcons = screen.getAllByTestId("icon-eye");
+
+        // Get all of them
+        eyeIcons.map((eyeIcon) =>
+        {
+          userEvent.click(eyeIcon);
+        });
+
+        // Assertion: 
+        expect(spyOnModal).toHaveBeenCalledTimes(4);
+      });
+    });
+  });
+});
+
+// Integration test GET (Bills)
+describe("Given I am a user connected as en employee", ()=> 
+{
+  describe("When I am on my personal Dashboard", ()=> 
+  {
+    test("Fetches bills from mock API GET", async ()=> 
+    {
+      const getSpyOn = jest.spyOn(store, "bills");
+      const bills = await store.bills().list();
+
+      // Assertions:
+      expect(getSpyOn).toHaveBeenCalledTimes(1);
+      expect(bills.length).toBe(4);
+    });
+
+    test("Fetches bills from an API and fails with 404 message error", async ()=> 
+    {
+      store.bills.mockImplementationOnce(() =>
+        Promise.reject(new Error("Erreur 404"))
+      );
+
+      document.body.innerHTML = BillsUI({ error: "Erreur 404" });
+      const message = await screen.getByText(/Erreur 404/);
+
+      // Assertions: check if the message displays
+      expect(message).toBeTruthy();
+    });
+  });
+});
