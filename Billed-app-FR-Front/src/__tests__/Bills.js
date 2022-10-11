@@ -13,6 +13,7 @@ import { bills } from "../fixtures/bills.js";
 import mockStore from "../__mocks__/store";
 import { ROUTES, ROUTES_PATH } from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
+import { row } from "../views/BillsUI.js";
 
 jest.mock("../app/store", () => mockStore)
 
@@ -150,7 +151,7 @@ describe("Given I am connected as an employee", () => {
       };
 
       const store = null;
-      const currentBills2 = new Bills({ document, onNavigate, store, localStorage: window.localStorage });
+      const currentBill2 = new Bills({ document, onNavigate, store, localStorage: window.localStorage });
 
       // Add bill view with a data
       document.body.innerHTML = BillsUI(bills[0]);
@@ -158,25 +159,26 @@ describe("Given I am connected as an employee", () => {
       tBody.innerHTML = row(bills[0]);
 
       // Fetch icon eye
-      const eyeIcons = screen.getAllByTestId("icon-eye");
+      const eyeIcons = screen.getByTestId("icon-eye");
       
       // Fetch modal
       const modaleFile = document.getElementById("modaleFile");
 
       // Mock of our object
-      const handleClickIconEye = jest.fn(currentBills2.handleClickIconEye(eyeIcons));
+      const handleClickIconEye = jest.fn(currentBill2.handleClickIconEye(eyeIcons));
       
       // Simulate a click on the icon eye
       eyeIcons.addEventListener("click", ()=>
       {
         handleClickIconEye;
-        $.fn.modal = jest.fn(()=> modaleFile.classList.add("iconIsVisible"));
+        $.fn.modal = jest.fn(()=> modaleFile.classList.add("show"));
         userEvent.click(eyeIcons);
 
         // Check the class of the modal is "show"
         expect(modaleFile).toHaveClass("show"); 
       });
     });
+
     // TEST 6: les bonnes notes de frais sont affichees
     test("Then, the right corresponding bill shows", ()=>
     {
@@ -186,10 +188,10 @@ describe("Given I am connected as an employee", () => {
       tBody.innerHTML = row(bills[0]);
 
       // Fetch icon eye
-      const eyeIcons = screen.getByTestId("icon-eye");
+      const eyeButton = screen.getByTestId("icon-eye");
 
       // Assertion: chekc of the modal shows the right corresponding file
-      expect(eyeIcons.getAttribute("data-bill-url")).toEqual("https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a");
+      expect(eyeButton.getAttribute("data-bill-url")).toEqual("https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a");
     });
   });
 });
