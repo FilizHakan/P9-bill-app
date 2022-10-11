@@ -13,7 +13,7 @@ import NewBill from "../containers/NewBill.js";
 import NewBillUI from "../views/NewBillUI.js";
 import router from "../app/Router.js";
 
-jest.mock("../app/store", () => mockStore);
+jest.mock("../app/Store", () => mockStore);
 
 const setup = async () => {
 
@@ -41,45 +41,20 @@ const setup = async () => {
 
 describe("Given I am connected as an employee", () => 
 {
+  beforeEach(() => 
+  {
+    jest.clearAllMocks();
+  });
+  
+  afterEach(() => 
+  {
+    jest.clearAllMocks();
+  });
+
   describe("When I am on NewBill Page", () => 
   {
-    test("Then, the new bill form should appear", async() => 
-    {
-      // Await setup function first
-      await setup();
-
-      // Be on the new bill page
-      window.onNavigate(ROUTES_PATH.NewBill);
-
-      // Get the text page title and test what we expect the value, when cast to a boolean, will be a truthy value
-      const title = screen.getByText("Envoyer une note de frais");
-      // Assertion for getTitle
-      expect(title).toBeTruthy();
-      
-      // Get the new bill form by data-testid and test what we expect the value, when cast to a boolean, will be a truthy value
-      const form = screen.getByTestId("form-new-bill");
-      // Assertion for getForm
-      expect(form).toBeTruthy();
-
-      // Get contact form fields by data-testid
-      const fields =
-      {
-        type: screen.getByTestId("expense-type"), 
-        name: screen.getByTestId("expense-name"),
-        date: screen.getByTestId("datepicker"),
-        amount: screen.getByTestId("amount"),
-        vat: screen.getByTestId("vat"),
-        pct: screen.getByTestId("pct"),
-        commentary: screen.getByTestId("commentary"),
-        file: screen.getByTestId("file"),
-      };
-
-      // Method returns an array of the object fields' own property names and we test each property names to be true thanks to the imbrication of expect in the forEach() loop method
-      Object.keys(fields).forEach((key) => expect(fields[key]).toBeTruthy());
-
-    });
-
-    test("Then an alert error should not pop on the user's screen", async() =>
+    // TEST 3: no error message should be shown on NewBill page
+    test("Then, an error message should not pop on the screen", async() =>
     {
       // Await setup function first
       await setup();
@@ -89,9 +64,9 @@ describe("Given I am connected as an employee", () =>
 
       // Monitor the function when creating a new bill ("note de frais") with a spy
       // Fetch bills() from app/Router
-      const getBills = mockStore.bills();
+      const bills = mockStore.bills();
       // Spy when there is a bill creation
-      const newBillCreation = jest.spyOn(getBills, "create");
+      const newBill = jest.spyOn(bills, "create");
 
       // Fetch the form error
       const formError = screen.getByTestId("form-error");
@@ -102,7 +77,7 @@ describe("Given I am connected as an employee", () =>
 
     });
 
-    // Upload a file that is allowed jpeg, jpg or png
+    // TEST 1: Upload a file that is allowed jpeg, jpg or png
     describe("when I upload a file with the right extension", () =>
     {
       test("Then the file should be uploaded by calling the function store.bills().create()", async () =>
@@ -115,9 +90,9 @@ describe("Given I am connected as an employee", () =>
 
         // Monitor the function when creating a new bill ("note de frais") with a spy
         // Fetch bills() from app/Router
-        const getBills = mockStore.bills();
+        const bills = mockStore.bills();
         // Spy jest when there is a bill creation
-        const newBillCreation = jest.spyOn(getBills, "create");
+        const newBill = jest.spyOn(bills, "create");
 
         // Fields
         // Get file upload by data-testid
@@ -146,20 +121,17 @@ describe("Given I am connected as an employee", () =>
 
           // Test the two assertions as followed:
           // the function that create the new bill is not to be called
-          expect(getBills.create).not.toBeCalled();
+          expect(bills.create).not.toBeCalled();
           // The fragment identifier # (hash) in the URL has to be directed on the new bill page
           expect(window.location.hash).toBe(ROUTES_PATH.NewBill);
-
-          // Reset all mocks automatically
-          jest.resetAllMocks();
 
       });
     });
 
-    // Test if the user upload a file with a disallowed extension
+    // TEST 2: if the user upload a file with a disallowed extension
     describe("When I upload a file with the wrong extension", () =>
     {
-      test("Then an error message should pop on the screen of the user before any upload is allowed", async() =>
+      test("Then, the file should not upload and an error message should pop on the screen before any upload", async() =>
       {
         // Call setup function and transform it into an async function
         await setup();
@@ -171,7 +143,7 @@ describe("Given I am connected as an employee", () =>
         document.body.innerHTML = NewBillUI();
 
         // Create a new bill
-        const newBillCreation = new NewBill(
+        const newBill = new NewBill(
           {
             document,
             onNavigate,
@@ -184,7 +156,7 @@ describe("Given I am connected as an employee", () =>
         const file = screen.getByTestId("file");
         const getFile = new File(["Test"], "test.txt");
         const handleChangeFile = jest.fn((e) =>
-        newBillCreation.handleChangeFile(e));
+        newBill.handleChangeFile(e));
         
         // New file submission for test purpose
         file.addEventListener("change", handleChangeFile);
@@ -210,11 +182,12 @@ describe("Given I am connected as an employee", () =>
       });
     });
 
-    describe("When clicking on the submit button", ()=>
+    // TEST 4: Once the form is fully filed out, the form should be sent with no error message
+    describe("When I click on the submit button", ()=>
     {
       describe("When all the required fields are filled out properly", ()=>
       {
-        test("Then, the form should be sent", async()=>
+        test("Then, the form should be sent and no error message should pop on the screen", async()=>
         {
           // Await for the setup function first
           await setup();
@@ -234,24 +207,22 @@ describe("Given I am connected as an employee", () =>
           });
 
           // Get the new bill
-          const getNewBill = screen.getByTestId("form-new-bill");
+          const formE1 = screen.getByTestId("form-new-bill");
 
           // Assertion: Check if the form is properly displayed
-          expect(getNewBill).toBeTruthy();
+          expect(formE1).toBeTruthy();
 
-          // Helpers
+          // Helpers       
+          const expenseType = screen.getByTestId("expense-type");
+          const expenseName = screen.getByTestId("expense-name");
+          const date = screen.getByTestId("datepicker");
+          const amount =  screen.getByTestId("amount");
+          const vat = screen.getByTestId("vat");
+          const pct = screen.getByTestId("pct");
+          const commentary = screen.getByTestId("commentary");
+          const fileUrl = screen.getByTestId("file");
+          const fileName = screen.getByTestId("file");
           
-            const expenseType = screen.getByTestId("expense-type");
-            const expenseName = screen.getByTestId("expense-name");
-            const date = screen.getByTestId("datepicker");
-            const amount =  screen.getByTestId("amount");
-            const vat = screen.getByTestId("vat");
-            const pct = screen.getByTestId("pct");
-            const commentary = screen.getByTestId("commentary");
-            const fileUrl = screen.getByTestId("file");
-            const fileName = screen.getByTestId("file");
-          
-
           // Fill form inputs
           const billTest =
           {
@@ -278,7 +249,7 @@ describe("Given I am connected as an employee", () =>
           userEvent.type(commentary, billTest.commentary);
 
           // Mock form submit
-          const handleSubmission = jest.fn((e)=> newBill.handleSubmit(e));
+          const handleSubmit = jest.fn((e)=> newBill.handleSubmit(e));
           const updateBill = jest.fn((billTest)=> newBill.updateBill(billTest));
 
           // Assertions: check if the fields are properly filled out
@@ -291,15 +262,15 @@ describe("Given I am connected as an employee", () =>
           expect(document.querySelector(`textarea[data-testid="commentary"]`).value).toEqual("Services au client - test");
 
           // Add listener for new bill submission
-          getNewBill.addEventListener("submit", e=>
+          formE1.addEventListener("submit", e=>
           {
-            handleSubmission(e);
+            handleSubmit(e);
             updateBill(billTest);
           });
-          fireEvent.submit(getNewBill);
+          fireEvent.submit(formE1);
 
           // Assertions: Method calls properly the form submission
-          expect(handleSubmission).toHaveBeenCalled();
+          expect(handleSubmit).toHaveBeenCalled();
 
           // Fetch error message
           const error = screen.getByTestId("form-error");
@@ -315,10 +286,10 @@ describe("Given I am connected as an employee", () =>
         });
       });
 
-      // Test if the form is NOT valid
+      // TEST 5: if the form is NOT valid
       describe("When all the fields are left blank", () =>
       {
-        test("Then, clicking on the submit button should be disabled and an alert should pop on the screen", async()=>
+        test("Then, clicking on the submit button should do nothing and an alert should pop on the screen", async()=>
         {
           // Call setup function and transform it into an async function
           await setup();
@@ -330,7 +301,7 @@ describe("Given I am connected as an employee", () =>
           document.body.innerHTML = NewBillUI();
 
           // Create a new bill
-          const createNewBill = new NewBill(
+          const newBill = new NewBill(
             {
               document,
               onNavigate,
@@ -339,18 +310,18 @@ describe("Given I am connected as an employee", () =>
             });
           
           // Get the form 
-          const newBillForm = screen.getByTestId("form-new-bill");
+          const formE1 = screen.getByTestId("form-new-bill");
 
           // Assertion to be verified is as followed:
           // Submission with the # in URL on new bill page should not be redirected
-          expect(newBillForm).toBeTruthy();
+          expect(formE1).toBeTruthy();
 
           // Mock to submit a new bill
-          const handleSubmit = jest.fn((e) => createNewBill.handleSubmit(e));
+          const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
 
           // Submit simulation
-          newBillForm.addEventListener("submit", handleSubmit);
-          fireEvent["submit"](newBillForm);
+          formE1.addEventListener("submit", handleSubmit);
+          fireEvent["submit"](formE1);
 
           // Get error
           const error = screen.getByTestId("form-error");
@@ -376,16 +347,16 @@ describe("Given I am connected as an employee", () =>
   });
 });
 
-// Integration test for POST (API)
+// TEST 6: Integration test for POST (API)
 describe("Given I am connected as an employee", ()=>
 {
   describe("When I am on the newBill page", ()=>
   {
     describe("When I do fill out all the required field", ()=>
     {
-      describe("When the API shows a 500 alert error", ()=>
+      describe("When the API shows an error", ()=>
       {
-        test("Then submitting the form should not redirect the user on the bills page", async () =>
+        test("Then, submit should not redirect the user on bills page", async () =>
         { 
           // Call setup function and transform it into an async function
           await setup();
@@ -394,13 +365,13 @@ describe("Given I am connected as an employee", ()=>
           window.onNavigate(ROUTES_PATH.NewBill);
 
           // Spy on when the bills is updated - 500 error
-          const getBills = mockStore.bills();
-          jest.spyOn(getBills, "update").mockImplementation((bill) => {
-            return Promise.reject(new Error("Erreur 500"));
+          const bills = mockStore.bills();
+          jest.spyOn(bills, "update").mockImplementation((bill) => {
+            return Promise.reject(/Erreur 500/);
           });
 
           // Fetch by data-testid and set up useful functions to check input values for each fields
-          const getForm = screen.getByTestId("form-new-bill");
+          const formE1 = screen.getByTestId("form-new-bill");
           const fields = 
           {
             type: screen.getByTestId("expense-type"),
@@ -413,32 +384,34 @@ describe("Given I am connected as an employee", ()=>
             fileUrl: screen.getByTestId("file"),
             fileName: screen.getByTestId("file"),
           };
+
+          // Get today value
           const now = new Date();
           const today = now.getFullYear() + "/" + month + "/" + day;
-          const day = ("0" + now.getDate()).slice(-2);
           const month = ("0" + (now.getMonth() + 1)).slice(-2);
+          const day = ("0" + now.getDate()).slice(-2);
 
-          // Inject value in inputs' fields for test purpose
-          fields.name.value = "Test nom";
+          // Inject value in inputse fields for test purpose
+          fields.name.value = "TestE1";
           fields.date.value = today;
           fields.amount.value = 100;
           fields.commentary.value = "Test commentaire";
           fields.vat.value = 50;
           fields.pct.value = 10;
 
-          // Form submission
-          fireEvent.submit(getForm);
+          // Form submission 
+          fireEvent.submit(formE1);
 
           // Use process.nextTick to ensure asynchronous actions are resolved before running assertions during tests
           await waitFor(()=> process.nextTick);
 
           // The function store.bills().update has to be called
-          expect(getBills.update).toBeCalled();
+          expect(bills.update).toBeCalled();
           // Not redirect on bills page
           expect(window.location.hash).not.toBe(ROUTES_PATH.Bills);
 
+          // Refresh all mocks
           jest.restoreAllMocks();
-
         });
       });
     });

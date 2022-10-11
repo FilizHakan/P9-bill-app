@@ -5,7 +5,7 @@
 import "@testing-library/jest-dom";
 import store from "../__mocks__/store";
 import userEvent from "@testing-library/user-event";
-import { screen, waitFor, prettyDOM, getByTestId } from "@testing-library/dom";
+import { screen, waitFor, getByTestId } from "@testing-library/dom";
 import Bills from "../containers/Bills.js";
 import BillsUI from "../views/BillsUI.js";
 import router from "../app/Router.js";
@@ -40,6 +40,7 @@ const setup = async () => {
   return root;
 };
 
+// TEST 1: L'icone a gauche a un background plus clair
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
@@ -59,7 +60,7 @@ describe("Given I am connected as an employee", () => {
       expect(windowIcon.classList).toContain("active-icon");
 
     });
-
+    // TEST 1: Les dates des billets sont triees du plus recent au plus ancien
     test("Then, bills should be ordered from most recent to oldest", () => {
       // Add the view on the Bill page
       document.body.innerHTML = BillsUI({ data: bills })
@@ -71,34 +72,14 @@ describe("Given I am connected as an employee", () => {
       const antiChrono = (a, b) => ((a < b) ? 1 : -1)
       const datesSorted = [...dates].sort(antiChrono)
       
-      // Test if the dates are sorted like as in the test
+      // Test if the dates are sorted out like as in the test
       expect(dates).toEqual(datesSorted)
     });
 
-    test("Then, adding a new bill should be reloading the NewBills page", ()=>
+    // TEST 2: le formulaire pour la nouvelle note de frais s'affiche
+    describe("When I click on the 'Nouvelle note de frais' button", ()=>
     {
-      document.body.innerHTML = BillsUI({ data: bills});
-      const onNavigate = (pathname) =>
-      {
-        document.body.innerHTML = ROUTES({ pathname });
-      };
-      const currentBills = new Bills({document, onNavigate, store, localStorageMock});  
-
-      const handleClickNewBill = jest.fn((e) => currentBills.handleClickNewBill(e));
-
-      const newBills = screen.getByTestId("btn-new-bill");
-      newBills.addEventListener("click", handleClickNewBill);
-      userEvent.click(newBills);
-      
-      const newBillForm = screen.getByTestId("form-new-bill");
-      
-      // Assertion:
-      expect(newBillForm).toBeTruthy();
-    });
-
-    describe("When I click on the 'Envoyer une nouvelle note de frais' button", ()=>
-    {
-      test("Then, the New Bill form should appear", async()=>
+      test("Then, the NewBill form should appear", async()=>
       {
         await setup();
 
@@ -112,17 +93,28 @@ describe("Given I am connected as an employee", () => {
         newBillButton.addEventListener("click", onNavigate);
         userEvent.click(newBillButton);
 
-        // Fetch the sending button
-        const sendNewBill = getByTestId(document.body, "send-new-bill");
-
-        // Assetions: check if the new bill page is properly displayed
-        expect(sendNewBill).toHaveTextContent("Envoyer une note de frais");
+        // Assertions: check if the new bill page is properly displayed
+        expect(getByTestId(document.body, "send-new-bill")).toHaveTextContent("Envoyer une note de frais");
       });
     });
 
+    // TEST 3: La modale des justificatifs n'est pas affichee
+    test("Then, the modal of the file should NOT be appearing", ()=>
+    {
+      // Add the Bill page view
+      document.body.innerHTML = BillsUI({ data: bills});
+
+      // Fetch modal
+      const modaleFile = document.getElementById("modaleFile");
+      
+      // Assertion: Check that the modale has no class
+      expect(modaleFile).not.toHaveClass('show');
+    });
+
+    // TEST 4: Le bonne modale du billet s'affiche
     describe("When I click on an eye icon", ()=>
     {
-      test("Then, the modal should appear", ()=>
+      test("Then, the right modal should appear", ()=>
       {
         document.body.innerHTML = BillsUI({data: bills});
         const currentBills = new Bills({document, onNavigate, store, localStorageMock});
@@ -144,25 +136,80 @@ describe("Given I am connected as an employee", () => {
         expect(spyOnModal).toHaveBeenCalledTimes(4);
       });
     });
+
+    // TEST 5: les notes de frais sont visibles
+    test("Then, the bill shows", ()=>
+    {
+      // JQuery Mock used in Bills
+      $.fn.modal = jest.fn();
+
+      // Create the object for the new bill
+      const onNavigate = (pathname) =>
+      {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      const store = null;
+      const currentBills2 = new Bills({ document, onNavigate, store, localStorage: window.localStorage });
+
+      // Add bill view with a data
+      document.body.innerHTML = BillsUI(bills[0]);
+      const tBody = screen.getByTestId("tbody");
+      tBody.innerHTML = row(bills[0]);
+
+      // Fetch icon eye
+      const eyeIcons = screen.getAllByTestId("icon-eye");
+      
+      // Fetch modal
+      const modaleFile = document.getElementById("modaleFile");
+
+      // Mock of our object
+      const handleClickIconEye = jest.fn(currentBills2.handleClickIconEye(eyeIcons));
+      
+      // Simulate a click on the icon eye
+      eyeIcons.addEventListener("click", ()=>
+      {
+        handleClickIconEye;
+        $.fn.modal = jest.fn(()=> modaleFile.classList.add("iconIsVisible"));
+        userEvent.click(eyeIcons);
+
+        // Check the class of the modal is "show"
+        expect(modaleFile).toHaveClass("show"); 
+      });
+    });
+    // TEST 6: les bonnes notes de frais sont affichees
+    test("Then, the right corresponding bill shows", ()=>
+    {
+      // Add Bill view
+      document.body.innerHTML = BillsUI(bills[0]);
+      const tBody = screen.getByTestId("tbody");
+      tBody.innerHTML = row(bills[0]);
+
+      // Fetch icon eye
+      const eyeIcons = screen.getByTestId("icon-eye");
+
+      // Assertion: chekc of the modal shows the right corresponding file
+      expect(eyeIcons.getAttribute("data-bill-url")).toEqual("https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a");
+    });
   });
 });
 
-// Integration test GET (Bills)
+// TEST 7: Integration test GET (Bills)
 describe("Given I am a user connected as en employee", ()=> 
 {
   describe("When I am on my personal Dashboard", ()=> 
   {
-    test("Fetches bills from mock API GET", async ()=> 
+    test("Fetches bills from mock API GET", async()=> 
     {
       const getSpyOn = jest.spyOn(store, "bills");
       const bills = await store.bills().list();
 
-      // Assertions:
+      // Assertions: bills are properly fetched
       expect(getSpyOn).toHaveBeenCalledTimes(1);
       expect(bills.length).toBe(4);
     });
 
-    test("Fetches bills from an API and fails with 404 message error", async ()=> 
+    test("Fetches bills from an API and fails with a 404 message error", async()=> 
     {
       store.bills.mockImplementationOnce(() =>
         Promise.reject(new Error("Erreur 404"))
@@ -171,8 +218,23 @@ describe("Given I am a user connected as en employee", ()=>
       document.body.innerHTML = BillsUI({ error: "Erreur 404" });
       const message = await screen.getByText(/Erreur 404/);
 
-      // Assertions: check if the message displays
+      // Assertion: check if the message displays
       expect(message).toBeTruthy();
+    });
+
+    test("Fetches bills from an API and fails with a 500 message error", async()=>
+    {
+      store.bills.mockImplementationOnce(() =>
+        Promise.reject(new Error("Erreur 500"))
+      );
+      document.body.innerHTML = BillsUI({ error: "Erreur 500" });
+      
+      // Search for the message error
+      const message = await screen.getByText(/Erreur 500/);
+
+      // Assertion: 
+      expect(message).toBeTruthy();
+
     });
   });
 });
