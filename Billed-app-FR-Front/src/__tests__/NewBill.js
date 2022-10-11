@@ -350,13 +350,13 @@ describe("Given I am connected as an employee", () =>
 // TEST 6: Integration test for POST (API)
 describe("Given I am connected as an employee", ()=>
 {
-  describe("When I am on the newBill page", ()=>
+  describe("When I am on the NewBill page", ()=>
   {
     describe("When I do fill out all the required field", ()=>
     {
-      describe("When the API shows an error", ()=>
+      describe("When the API throws an error", ()=>
       {
-        test("Then, submit should not redirect the user on bills page", async () =>
+        test("Then, submit should not redirect the user on Bills page", async () =>
         { 
           // Call setup function and transform it into an async function
           await setup();
@@ -371,7 +371,7 @@ describe("Given I am connected as an employee", ()=>
           });
 
           // Fetch by data-testid and set up useful functions to check input values for each fields
-          const formE1 = screen.getByTestId("form-new-bill");
+          const form = screen.getByTestId("form-new-bill");
           const fields = 
           {
             type: screen.getByTestId("expense-type"),
@@ -385,7 +385,7 @@ describe("Given I am connected as an employee", ()=>
             fileName: screen.getByTestId("file"),
           };
 
-          // Get today value
+          // Get today's value
           const now = new Date();
           const today = now.getFullYear() + "/" + month + "/" + day;
           const month = ("0" + (now.getMonth() + 1)).slice(-2);
@@ -400,7 +400,7 @@ describe("Given I am connected as an employee", ()=>
           fields.pct.value = 10;
 
           // Form submission 
-          fireEvent.submit(formE1);
+          fireEvent["submit"](form);
 
           // Use process.nextTick to ensure asynchronous actions are resolved before running assertions during tests
           await waitFor(()=> process.nextTick);
@@ -411,7 +411,7 @@ describe("Given I am connected as an employee", ()=>
           expect(window.location.hash).not.toBe(ROUTES_PATH.Bills);
 
           // Refresh all mocks
-          jest.restoreAllMocks();
+          jest.clearAllMocks();
         });
       });
     });

@@ -155,7 +155,10 @@ export default class {
     }
 
     filteredBills(bills, getStatus(this.index)).forEach(bill => {
-      $(`#open-bill${bill.id}`).on ("click", (e) => this.handleEditTicket(e, bill, bills))
+      $(`#open-bill${bill.id}`).on ("click", (e) => {
+        this.handleEditTicket(e, bill, bills);
+        e.stopImmediatePropagation();
+      });
     });
 
     return bills;

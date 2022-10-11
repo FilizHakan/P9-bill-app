@@ -99,11 +99,12 @@ export default class NewBill {
       formError.setAttribute("class", "formError errorIsHidden");
       this.updateBill(bill);
       //this.onNavigate(ROUTES_PATH['Bills']);
-      }
-    };
+    }
+  };
 
-  /* istanbul ignore next */
+  
   // not need to cover this function by tests
+  /* istanbul ignore next */
   updateBill = (bill) => 
   {
     if (this.store) {
