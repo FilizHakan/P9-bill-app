@@ -312,7 +312,7 @@ describe("Given I am connected as an employee", () =>
           // Get the form 
           const formE1 = screen.getByTestId("form-new-bill");
 
-          // Assertion to be verified is as followed:
+          // Assertion to be verified is as follow:
           // Submission with the # in URL on new bill page should not be redirected
           expect(formE1).toBeTruthy();
 
@@ -359,7 +359,7 @@ describe("Given I am connected as an employee", () =>
             return Promise.reject(/Erreur 500/);
           });
           await waitFor(() => process.nextTick);
-          // Not redirect on bills page
+          // Assertions: Not redirect on bills page
           expect(window.location.hash).not.toBe(ROUTES_PATH.Bills);
           // Refresh all mocks
           jest.clearAllMocks();
