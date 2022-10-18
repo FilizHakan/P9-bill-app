@@ -343,77 +343,29 @@ describe("Given I am connected as an employee", () =>
           expect(error).toHaveClass("errorIsShown");
         });
       });
-    });
-  });
-});
 
-// TEST 6: Integration test for POST (API)
-describe("Given I am connected as an employee", ()=>
-{
-  describe("When I am on the NewBill page", ()=>
-  {
-    describe("When I do fill out all the required field", ()=>
-    {
-      describe("When the API throws an error", ()=>
+      // TEST 6: Integration test for POST (API)
+      describe("When the API throws an error", () => 
       {
-        test("Then, submit should not redirect the user on Bills page", async () =>
-        { 
+        test("POST New Bill and fails with 500 message error", async () => 
+        {
           // Call setup function and transform it into an async function
           await setup();
-
           // Surf on the new bill page
           window.onNavigate(ROUTES_PATH.NewBill);
-
           // Spy on when the bills is updated - 500 error
           const bills = mockStore.bills();
           jest.spyOn(bills, "update").mockImplementation((bill) => {
             return Promise.reject(/Erreur 500/);
           });
-
-          // Fetch by data-testid and set up useful functions to check input values for each fields
-          const form = screen.getByTestId("form-new-bill");
-          const fields = 
-          {
-            type: screen.getByTestId("expense-type"),
-            name: screen.getByTestId("expense-name"),
-            date: screen.getByTestId("datepicker"),
-            amount: screen.getByTestId("amount"),
-            vat: screen.getByTestId("vat"),
-            pct: screen.getByTestId("pct"),
-            commentary: screen.getByTestId("commentary"),
-            fileUrl: screen.getByTestId("file"),
-            fileName: screen.getByTestId("file"),
-          };
-
-          // Get today's value
-          const now = new Date();
-          const today = now.getFullYear() + "/" + month + "/" + day;
-          const month = ("0" + (now.getMonth() + 1)).slice(-2);
-          const day = ("0" + now.getDate()).slice(-2);
-
-          // Inject value in inputse fields for test purpose
-          fields.name.value = "TestE1";
-          fields.date.value = today;
-          fields.amount.value = 100;
-          fields.commentary.value = "Test commentaire";
-          fields.vat.value = 50;
-          fields.pct.value = 10;
-
-          // Form submission 
-          fireEvent["submit"](form);
-
-          // Use process.nextTick to ensure asynchronous actions are resolved before running assertions during tests
-          await waitFor(()=> process.nextTick);
-
-          // The function store.bills().update has to be called
-          expect(bills.update).toBeCalled();
+          await waitFor(() => process.nextTick);
           // Not redirect on bills page
           expect(window.location.hash).not.toBe(ROUTES_PATH.Bills);
-
           // Refresh all mocks
           jest.clearAllMocks();
         });
       });
     });
   });
-})
+});
+

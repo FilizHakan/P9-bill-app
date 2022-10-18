@@ -197,7 +197,7 @@ describe("Given I am connected as an employee", () => {
 });
 
 // TEST 7: Integration test GET (Bills)
-describe("Given I am a user connected as en employee", ()=> 
+describe("Given I am a connected as en employee", ()=> 
 {
   describe("When I am on my personal Dashboard", ()=> 
   {

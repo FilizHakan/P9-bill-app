@@ -43,7 +43,7 @@ export default class NewBill {
     const email = JSON.parse(localStorage.getItem("user")).email
     formData.append('file', file)
     formData.append('email', email)
-    console.log('--- TEST PASSED ---')
+    console.log('--- OK ---')
     
     const extensionCheck = /(png|jpeg|jpg)/g; // Compulsory extensions
     const extensionFormat = fileName.split(".").pop().toLowerCase();
